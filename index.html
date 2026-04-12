@@ -580,7 +580,7 @@ body.admin-mode .cp-add-btn { display: block; }
 </div>
 
 <div id="controls">
-  <div class="ctrl"><span class="ctrl-icon">🫧</span> <span class="ctrl-long">Tap a bubble to start your journey</span></div>
+  <div class="ctrl"><span class="ctrl-icon">🫧</span> <span class="ctrl-long">Tap a bubble to start a path</span></div>
   <div class="ctrl"><span class="ctrl-icon">👆</span> <span class="ctrl-long">Drag to spin</span></div>
   <div class="ctrl"><span class="ctrl-icon">🔍</span> <span class="ctrl-long">Scroll to zoom</span></div>
   <div class="ctrl"><span class="ctrl-dot-a"></span><span class="ctrl-dot-b"></span> <span class="ctrl-long">Tap any node to read</span></div>
@@ -1370,7 +1370,26 @@ navBar.addEventListener('click', e => {
   activatePath(pill.dataset.path);
 });
 
+let bottomDragging = false, bottomDragged = false, bottomStartX = 0, bottomScrollStart = 0;
+bottomScroll.addEventListener('mousedown', e => {
+  bottomDragging = true; bottomDragged = false;
+  bottomStartX = e.pageX; bottomScrollStart = bottomScroll.scrollLeft;
+  e.preventDefault();
+});
+window.addEventListener('mousemove', e => {
+  if (!bottomDragging) return;
+  const dx = e.pageX - bottomStartX;
+  if (Math.abs(dx) > 4) bottomDragged = true;
+  bottomScroll.scrollLeft = bottomScrollStart - dx;
+});
+window.addEventListener('mouseup', () => { bottomDragging = false; });
+bottomScroll.addEventListener('wheel', e => {
+  e.preventDefault();
+  bottomScroll.scrollLeft += e.deltaY + e.deltaX;
+}, { passive: false });
+
 bottomScroll.addEventListener('click', e => {
+  if (bottomDragged) return;
   const pill = e.target.closest('.nav-pill');
   if (!pill) return;
   fadeBubblesAway();
