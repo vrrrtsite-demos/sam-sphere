@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Jakes Schoeman">
+<title>Smart About Money — Knowledge Sphere</title>
+<!--
+  Knowledge Graph Technology — Proprietary concept and implementation.
+  Developed by Jakes Schoeman. All rights reserved.
+  Unauthorised reproduction or reuse prohibited.
+-->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; width: 100vw; }
+
+  /* ── Header ── */
+  #header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+    background: #fff; border-bottom: 1px solid #e8e8e0;
+    height: 52px; display: flex; align-items: center;
+  }
+  #change-path {
+    flex-shrink: 0; padding: 0 14px; height: 100%;
+    display: flex; align-items: center;
+    font-size: 11px; font-weight: 700; color: #7f4098;
+    cursor: pointer; border-left: 1px solid #eee;
+    white-space: nowrap; font-family: 'Inter', sans-serif;
+    transition: background 0.15s;
+  }
+  #change-path:hover { background: rgba(127,64,152,0.06); }
+
+  #logo-pin {
+    flex-shrink: 0; padding: 0 14px;
+    display: flex; align-items: center; gap: 10px;
+    border-right: 1px solid #eee; height: 100%;
+  }
+  #logo-mark {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #7f4098, #00aead);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 900; color: #fff;
+    font-family: 'Inter', sans-serif; flex-shrink: 0;
+  }
+  #logo-text {
+    display: flex; flex-direction: column; line-height: 1.1;
+  }
+  #logo-text .l1 { font-size: 9px; font-weight: 700; color: #7f4098; letter-spacing: 0.5px; text-transform: uppercase; }
+  #logo-text .l2 { font-size: 11px; font-weight: 800; color: #333; }
+  #logo-text .l3 { font-size: 8px; color: #999; }
+
+  #nav-wrap {
+    flex: 1; min-width: 0; position: relative; height: 100%; overflow: hidden;
+  }
+  #nav-wrap::after {
+    content: ''; pointer-events: none;
+    position: absolute; top: 0; right: 0; width: 40px; height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,1));
+    z-index: 1;
+  }
+  #nav-bar {
+    display: flex; align-items: center; gap: 6px; padding: 0 12px;
+    overflow-x: scroll; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    touch-action: pan-x; cursor: grab; height: 100%; width: 100%;
+  }
+  #nav-bar::-webkit-scrollbar { display: none; }
+  #nav-bar:active { cursor: grabbing; }
+
+  .nav-pill {
+    flex-shrink: 0; cursor: pointer; white-space: nowrap;
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; border: 1.5px solid transparent;
+    transition: all 0.18s ease; letter-spacing: 0.1px; user-select: none;
+  }
+  .nav-pill.all { background: #f0f0f0; color: #666; border-color: #ddd; }
+  .nav-pill.all.active, .nav-pill.all:hover { background: #333; color: #fff; border-color: #333; }
+
+  /* Path pills */
+  .nav-pill.path { font-size: 11px; font-weight: 800; padding: 4px 13px; background: #f7f7f7; color: #333; border-color: #ddd; }
+  .nav-pill.path:hover:not(.active) { background: #eee; border-color: #bbb; }
+  .nav-pill.path.active { color: #fff; border-color: transparent; box-shadow: 0 2px 10px rgba(0,0,0,0.20); }
+  .nav-pill.path[data-path="start"].active  { background: #7f4098; }
+  .nav-pill.path[data-path="settle"].active { background: #e67e22; }
+  .nav-pill.path[data-path="build"].active  { background: #2980b9; }
+  .nav-pill.path[data-path="retire"].active { background: #00aead; }
+  .nav-pill.path[data-path="debt"].active   { background: #c0392b; }
+
+  /* Topics — purple */
+  .nav-pill.a { background: rgba(127,64,152,0.08); color: #7f4098; border-color: rgba(127,64,152,0.30); }
+  .nav-pill.a.active { background: #7f4098; color: #fff; border-color: #7f4098; box-shadow: 0 2px 10px rgba(127,64,152,0.35); }
+  .nav-pill.a:hover:not(.active) { background: rgba(127,64,152,0.15); }
+
+  /* Journey — teal */
+  .nav-pill.b { background: rgba(0,174,173,0.08); color: #00756e; border-color: rgba(0,174,173,0.30); }
+  .nav-pill.b.active { background: #00aead; color: #fff; border-color: #00aead; box-shadow: 0 2px 10px rgba(0,174,173,0.35); }
+  .nav-pill.b:hover:not(.active) { background: rgba(0,174,173,0.15); }
+
+  .nav-divider { flex-shrink: 0; width: 1px; height: 20px; background: #ddd; margin: 0 4px; }
+
+  /* ── Bottom topic bar ── */
+  #bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+    background: rgba(255,255,255,0.96); border-top: 1px solid #e8e8e0;
+    height: 44px; display: flex; align-items: center;
+    backdrop-filter: blur(8px);
+  }
+  #bottom-scroll {
+    display: flex; align-items: center; gap: 6px; padding: 0 14px;
+    overflow-x: scroll; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    touch-action: pan-x; height: 100%; width: 100%;
+  }
+  #bottom-scroll::-webkit-scrollbar { display: none; }
+  #canvas-container { bottom: 44px; }
+
+  /* ── Canvas ── */
+  #canvas-container { position: fixed; top: 52px; left: 0; right: 0; bottom: 0; cursor: grab; }
+
+  /* ── Node labels ── */
+  .node-label {
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    white-space: nowrap; transition: opacity 0.25s; letter-spacing: 0.1px;
+    pointer-events: auto; cursor: pointer;
+  }
+  .node-label.hub-a   { color: #4a1a6a; background: rgba(255,255,255,0.95); border: 1.5px solid rgba(127,64,152,0.65); box-shadow: 0 2px 6px rgba(0,0,0,0.10); }
+  .node-label.hub-b   { color: #004e4e; background: rgba(255,255,255,0.95); border: 1.5px solid rgba(0,174,173,0.55); box-shadow: 0 2px 6px rgba(0,0,0,0.10); }
+  .node-label.child-a { font-size: 9px; font-weight: 600; color: #7f4098; background: rgba(255,255,255,0.88); border: 1px solid rgba(127,64,152,0.30); padding: 1px 7px; }
+  .node-label.child-b { font-size: 9px; font-weight: 600; color: #00756e; background: rgba(255,255,255,0.88); border: 1px solid rgba(0,174,173,0.28); padding: 1px 7px; }
+
+  /* ── Mini tooltip ── */
+  #mini-tip {
+    position: fixed; display: none; z-index: 500;
+    background: #1a1a2e; border-radius: 14px; padding: 0;
+    width: 300px; pointer-events: auto; cursor: default;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.50), 0 0 0 1px rgba(127,64,152,0.35);
+    overflow: hidden;
+  }
+  #mini-tip.visible { display: block; animation: tipIn 0.18s ease; }
+  @keyframes tipIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  #mt-content { padding: 14px 16px; }
+  #mt-label  { font-size: 12px; font-weight: 800; color: #c090e0; margin-bottom: 5px; }
+  #mt-body   { font-size: 11px; color: rgba(255,255,255,0.78); line-height: 1.6; }
+  #mt-action { font-size: 10px; color: rgba(0,220,215,0.9); margin-top: 8px; font-weight: 700; cursor: pointer; }
+  #mt-close  { position: absolute; top: 8px; right: 10px; color: rgba(255,255,255,0.5); font-size: 16px; cursor: pointer; line-height: 1; z-index: 1; }
+
+  /* ── Health Check CTA ── */
+  .nav-cta {
+    flex-shrink: 0; cursor: pointer; white-space: nowrap;
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 700;
+    padding: 4px 14px; border-radius: 20px; letter-spacing: 0.1px; user-select: none;
+    background: linear-gradient(135deg, #7f4098, #00aead); color: #fff;
+    border: none; transition: all 0.18s ease;
+  }
+  .nav-cta:hover { opacity: 0.88; }
+
+  /* ── Controls ── */
+  #controls {
+    position: fixed; bottom: 64px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; z-index: 100; pointer-events: none;
+  }
+  .ctrl {
+    background: rgba(255,255,255,0.92); border: 1px solid #e0e0e0; border-radius: 20px;
+    padding: 5px 12px; display: flex; align-items: center; gap: 6px;
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+    color: #555; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .ctrl-icon { font-size: 13px; line-height: 1; }
+  .ctrl-dot-a { width: 10px; height: 10px; border-radius: 50%; background: #7f4098; display: inline-block; flex-shrink: 0; }
+  .ctrl-dot-b { width: 10px; height: 10px; border-radius: 50%; background: #00aead; display: inline-block; flex-shrink: 0; margin-left: -4px; }
+
+  @media (max-width: 600px) {
+    #hemi-labels { display: none; }
+    #controls { gap: 3px; bottom: 14px; }
+    .ctrl { font-size: 9px; padding: 4px 7px; gap: 3px; }
+    .ctrl-long { display: none; }
+  }
+
+  /* ── Floating Journey Bubbles ── */
+  .float-bubble {
+    position: fixed; z-index: 400; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px; border-radius: 30px;
+    font-family: 'Inter', sans-serif; font-weight: 800; font-size: 13px;
+    color: #fff; white-space: nowrap; user-select: none;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10);
+    animation: floatBob 3s ease-in-out infinite;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    backdrop-filter: blur(4px);
+  }
+  .float-bubble:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 10px 32px rgba(0,0,0,0.22); }
+  .float-bubble .fb-emoji { font-size: 18px; line-height: 1; }
+
+  .float-bubble[data-path="start"]  { background: rgba(127,64,152,0.88); animation-delay: 0s; }
+  .float-bubble[data-path="settle"] { background: rgba(230,126,34,0.88);  animation-delay: 0.6s; }
+  .float-bubble[data-path="build"]  { background: rgba(41,128,185,0.88);  animation-delay: 1.1s; }
+  .float-bubble[data-path="retire"] { background: rgba(0,174,173,0.88);   animation-delay: 0.3s; }
+  .float-bubble[data-path="debt"]   { background: rgba(192,57,43,0.88);   animation-delay: 0.9s; }
+
+  @keyframes floatBob {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-7px); }
+  }
+  .float-bubble.fly-away {
+    animation: flyUp 0.45s ease-in forwards !important;
+  }
+  .float-bubble.fade-away {
+    animation: fadeSlow 1.8s ease forwards !important;
+    pointer-events: none;
+  }
+  @keyframes flyUp {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-140px) scale(0.7); }
+  }
+  @keyframes fadeSlow {
+    0%   { opacity: 1; }
+    40%  { opacity: 0.6; }
+    100% { opacity: 0; }
+  }
+
+  /* ── Path Guide Panel ── */
+  #path-guide {
+    display: none; position: fixed; bottom: 54px; left: 20px;
+    transform: none; z-index: 300;
+    background: rgba(20,20,40,0.94); border-radius: 18px;
+    padding: 14px 20px 14px; min-width: 280px; max-width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.40);
+    border: 1.5px solid rgba(255,255,255,0.10);
+    text-align: center;
+  }
+  #path-guide.visible { display: block; animation: tipIn 0.3s ease; }
+  #pg-exit {
+    position: absolute; top: 10px; right: 14px;
+    font-size: 10px; color: rgba(255,255,255,0.35);
+    cursor: pointer; font-weight: 600; font-family: 'Inter', sans-serif;
+  }
+  #pg-exit:hover { color: rgba(255,255,255,0.7); }
+  #pg-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--path-color, #aaa);
+    margin-bottom: 6px; font-family: 'Inter', sans-serif;
+  }
+  #pg-step {
+    font-size: 15px; font-weight: 800; color: #fff;
+    margin-bottom: 10px; font-family: 'Inter', sans-serif;
+    line-height: 1.3;
+  }
+  #pg-dots {
+    display: flex; gap: 6px; justify-content: center; margin-bottom: 12px;
+  }
+  .pg-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.20); transition: all 0.2s;
+  }
+  .pg-dot.done { background: var(--path-color, #aaa); opacity: 0.6; }
+  .pg-dot.active { background: var(--path-color, #aaa); transform: scale(1.35); }
+  #pg-nav { display: flex; gap: 10px; justify-content: center; }
+  #pg-nav button {
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700;
+    padding: 7px 18px; border-radius: 20px; border: none; cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  #pg-back {
+    background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.6);
+  }
+  #pg-back:hover { background: rgba(255,255,255,0.18); color: #fff; }
+  #pg-next {
+    background: var(--path-color, #7f4098); color: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  }
+  #pg-next:hover { opacity: 0.88; }
+  #pg-next:disabled { opacity: 0.4; cursor: default; }
+
+  /* ── Entry Overlay ── */
+  #entry-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: #fff;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px 20px;
+    transition: opacity 0.55s ease;
+  }
+  #entry-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  #entry-logo {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  }
+  #entry-logo-mark {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #7f4098, #00aead);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 900; color: #fff;
+  }
+  #entry-logo-text .el1 { font-size: 11px; font-weight: 700; color: #7f4098; letter-spacing: 0.5px; text-transform: uppercase; }
+  #entry-logo-text .el2 { font-size: 18px; font-weight: 800; color: #222; line-height: 1.1; }
+  #entry-logo-text .el3 { font-size: 10px; color: #aaa; }
+
+  #entry-q {
+    font-size: clamp(18px, 4vw, 28px); font-weight: 800; color: #1a1a2e;
+    text-align: center; margin: 24px 0 8px;
+    max-width: 560px; line-height: 1.25;
+  }
+  #entry-sub {
+    font-size: 13px; color: #888; text-align: center;
+    margin-bottom: 36px; font-weight: 500;
+  }
+
+  #entry-cards {
+    display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+    max-width: 1000px; width: 100%;
+  }
+
+  .entry-card {
+    flex: 1; min-width: 170px; max-width: 200px;
+    border-radius: 18px; padding: 28px 24px;
+    cursor: pointer; user-select: none;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    border: 2px solid transparent;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 10px;
+  }
+  .entry-card:hover { transform: translateY(-4px); }
+
+  .entry-card.c1 {
+    background: rgba(127,64,152,0.07); border-color: rgba(127,64,152,0.25);
+    box-shadow: 0 4px 20px rgba(127,64,152,0.10);
+  }
+  .entry-card.c1:hover { box-shadow: 0 8px 32px rgba(127,64,152,0.22); border-color: #7f4098; }
+
+  .entry-card.c2 {
+    background: linear-gradient(135deg, rgba(127,64,152,0.06), rgba(0,174,173,0.06));
+    border-color: rgba(100,120,152,0.22);
+    box-shadow: 0 4px 20px rgba(60,80,120,0.08);
+  }
+  .entry-card.c2:hover { box-shadow: 0 8px 32px rgba(60,80,120,0.18); border-color: rgba(100,120,200,0.5); }
+
+  .entry-card.c3 {
+    background: rgba(0,174,173,0.07); border-color: rgba(0,174,173,0.25);
+    box-shadow: 0 4px 20px rgba(0,174,173,0.10);
+  }
+  .entry-card.c3:hover { box-shadow: 0 8px 32px rgba(0,174,173,0.22); border-color: #00aead; }
+
+  .card-emoji { font-size: 32px; line-height: 1; }
+  .card-title { font-size: 17px; font-weight: 800; color: #1a1a2e; line-height: 1.2; }
+  .card-desc  { font-size: 12px; color: #666; line-height: 1.55; font-weight: 500; }
+  .card-cta {
+    margin-top: 6px; font-size: 11px; font-weight: 700;
+    padding: 5px 14px; border-radius: 20px; color: #fff;
+    align-self: flex-start;
+  }
+  .c1 .card-cta { background: #7f4098; }
+  .c2 .card-cta { background: linear-gradient(135deg, #7f4098, #00aead); }
+  .c3 .card-cta { background: #00aead; }
+  .c4 .card-cta { background: #c0392b; }
+
+  .entry-card.c4 {
+    background: rgba(192,57,43,0.07); border-color: rgba(192,57,43,0.25);
+    box-shadow: 0 4px 20px rgba(192,57,43,0.08);
+  }
+  .entry-card.c4:hover { box-shadow: 0 8px 32px rgba(192,57,43,0.20); border-color: #c0392b; }
+
+  #entry-skip {
+    margin-top: 24px; font-size: 11px; color: #bbb;
+    cursor: pointer; font-weight: 600; text-decoration: underline;
+  }
+  #entry-skip:hover { color: #888; }
+
+  /* ── Hemisphere tags ── */
+  #hemi-labels {
+    position: fixed; left: 18px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 100; pointer-events: none;
+  }
+  .hemi-tag { font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; }
+  .hemi-tag.a { background: rgba(127,64,152,0.10); color: #7f4098; border: 1px solid rgba(127,64,152,0.25); }
+  .hemi-tag.b { background: rgba(0,174,173,0.10); color: #00756e; border: 1px solid rgba(0,174,173,0.25); }
+
+  /* ── Content Panel ── */
+  #content-panel {
+    position: fixed; top: 52px; right: 0; bottom: 44px;
+    width: 380px; z-index: 300;
+    background: rgba(255,255,255,0.97);
+    border-left: 1px solid #eee;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  #content-panel.visible { transform: translateX(0); }
+
+  #cp-resize-handle {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+    cursor: col-resize; z-index: 10; background: transparent; transition: background 0.2s;
+  }
+  #cp-resize-handle:hover, #cp-resize-handle.dragging { background: rgba(192,57,43,0.25); }
+  #cp-resize-handle::after {
+    content: ''; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
+    width: 2px; height: 32px; border-radius: 2px; background: rgba(192,57,43,0.4);
+  }
+
+  #cp-inner {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 40px;
+    overflow-y: auto; padding: 20px 20px 10px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin; scrollbar-color: #ccc transparent;
+  }
+  #cp-step-badge {
+    display: inline-block; font-size: 10px; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 20px; margin-bottom: 10px;
+    background: rgba(192,57,43,0.10); color: #c0392b;
+  }
+  #cp-title {
+    font-size: 18px; font-weight: 900; color: #1a1a2e;
+    margin-bottom: 8px; line-height: 1.25; font-family: 'Inter', sans-serif;
+  }
+  #cp-intro {
+    font-size: 13px; color: #666; line-height: 1.65;
+    margin-bottom: 20px; font-family: 'Inter', sans-serif;
+    border-left: 3px solid #c0392b; padding-left: 12px;
+  }
+
+  .cp-card {
+    background: #f9f9f9; border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 12px; position: relative;
+    border: 1px solid #f0f0f0; transition: box-shadow 0.15s;
+  }
+  .cp-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.cp-card.collapsed { background: #f4f4f4; cursor: pointer; }
+
+/* Articles list */
+.cp-articles { margin-top: 10px; }
+.cp-articles-label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; font-family: 'Inter', sans-serif; }
+.cp-article-list { list-style: none; padding: 0; margin: 0; }
+.cp-article-item { display: flex; align-items: baseline; gap: 6px; padding: 4px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+.cp-article-item:hover .cp-article-title { color: #c0392b; }
+.cp-article-dot { color: #c0392b; font-size: 14px; flex-shrink: 0; }
+.cp-article-title { font-size: 12px; color: #444; font-family: 'Inter', sans-serif; line-height: 1.4; }
+.cp-new-badge { font-size: 9px; background: #27ae60; color: #fff; border-radius: 10px; padding: 1px 6px; font-weight: 700; font-family: 'Inter', sans-serif; flex-shrink: 0; }
+.cp-article-expand { font-size: 11px; color: #c0392b; margin-left: auto; flex-shrink: 0; }
+.cp-article-item.open { background: rgba(192,57,43,0.04); border-radius: 6px; padding: 4px 6px; margin: 2px -6px; }
+.cp-article-item.open .cp-article-title { color: #c0392b; font-weight: 700; }
+.cp-article-body { font-size: 12px; color: #555; line-height: 1.65; padding: 8px 0 4px 16px; font-family: 'Inter', sans-serif; border-left: 2px solid rgba(192,57,43,0.25); margin-top: 6px; }
+
+/* Add article */
+.cp-add-wrap { margin-top: 10px; }
+.cp-add-btn { display: none; font-size: 11px; font-weight: 700; color: #7f4098; background: rgba(127,64,152,0.08); border: 1.5px dashed rgba(127,64,152,0.35); border-radius: 20px; padding: 5px 14px; cursor: pointer; font-family: 'Inter', sans-serif; width: 100%; transition: all 0.15s; }
+.cp-add-btn:hover { background: rgba(127,64,152,0.15); }
+body.admin-mode .cp-add-btn { display: block; }
+.cp-add-form { background: #f9f9f9; border-radius: 10px; padding: 10px; margin-top: 8px; border: 1px solid #eee; }
+.cp-add-title, .cp-add-body { width: 100%; border: 1px solid #ddd; border-radius: 8px; padding: 7px 10px; font-size: 12px; font-family: 'Inter', sans-serif; margin-bottom: 6px; }
+.cp-add-title:focus, .cp-add-body:focus { outline: 2px solid #7f4098; border-color: transparent; }
+.cp-add-save { background: #7f4098; color: #fff; border: none; border-radius: 20px; padding: 5px 14px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+.cp-add-cancel { background: #eee; color: #666; border: none; border-radius: 20px; padding: 5px 14px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+.cp-card.collapsed .cp-card-title { color: #666; font-weight: 700; }
+.cp-card-toggle { cursor: pointer; justify-content: space-between; }
+.cp-chevron { font-size: 10px; color: #aaa; margin-left: auto; }
+  .cp-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .cp-card-icon { font-size: 18px; }
+  .cp-card-title {
+    font-size: 13px; font-weight: 800; color: #1a1a2e;
+    font-family: 'Inter', sans-serif;
+  }
+  .cp-card-body {
+    font-size: 12px; color: #555; line-height: 1.65;
+    font-family: 'Inter', sans-serif; margin-bottom: 8px;
+  }
+  .cp-card-insight {
+    font-size: 11px; color: #c0392b; font-weight: 600;
+    background: rgba(192,57,43,0.07); border-radius: 8px;
+    padding: 6px 10px; line-height: 1.5; font-family: 'Inter', sans-serif;
+  }
+  .cp-edit-btn {
+    display: none; position: absolute; top: 10px; right: 12px;
+    font-size: 10px; font-weight: 700; color: #999;
+    background: #eee; border: none; border-radius: 20px;
+    padding: 3px 10px; cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: all 0.15s;
+  }
+  .cp-edit-btn:hover { background: #7f4098; color: #fff; }
+  body.admin-mode .cp-edit-btn { display: block; }
+  .cp-card-body[contenteditable="true"],
+  .cp-card-title[contenteditable="true"] {
+    outline: 2px solid #7f4098; border-radius: 4px;
+    padding: 2px 4px; background: #fff;
+  }
+  .cp-save-btn {
+    display: none; margin-top: 8px;
+    font-size: 11px; font-weight: 700; color: #fff;
+    background: #7f4098; border: none; border-radius: 20px;
+    padding: 4px 14px; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+
+  /* Admin bar */
+  #cp-admin-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 40px; border-top: 1px solid #eee;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding: 0 16px; gap: 10px;
+    background: #fafafa;
+  }
+  #cp-admin-label { font-size: 11px; color: #aaa; font-family: 'Inter', sans-serif; font-weight: 600; }
+  .cp-toggle-wrap { position: relative; display: inline-block; width: 36px; height: 20px; }
+  .cp-toggle-wrap input { opacity: 0; width: 0; height: 0; }
+  .cp-toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: #ddd; border-radius: 20px; transition: 0.2s;
+  }
+  .cp-toggle-slider:before {
+    content: ''; position: absolute;
+    width: 14px; height: 14px; left: 3px; bottom: 3px;
+    background: #fff; border-radius: 50%; transition: 0.2s;
+  }
+  .cp-toggle-wrap input:checked + .cp-toggle-slider { background: #7f4098; }
+  .cp-toggle-wrap input:checked + .cp-toggle-slider:before { transform: translateX(16px); }
+
+  @media (max-width: 860px) {
+    #content-panel { width: 100%; top: 52px; bottom: 44px; }
+    #cp-admin-bar { position: sticky; bottom: 0; }
+  }
+</style>
+</head>
+<body>
+
+
+<div id="header">
+  <div id="logo-pin">
+    <div id="logo-mark">$</div>
+    <div id="logo-text">
+      <span class="l1">Smart About</span>
+      <span class="l2">Money</span>
+      <span class="l3">An ASISA initiative</span>
+    </div>
+  </div>
+  <div id="nav-wrap"><div id="nav-bar"></div></div>
+  <div id="change-path" title="Choose a different path">← My Path</div>
+</div>
+
+<div id="hemi-labels">
+  <div class="hemi-tag a">▲ Topics</div>
+  <div class="hemi-tag b">▼ Your Journey</div>
+</div>
+
+<div id="canvas-container"></div>
+
+<div id="mini-tip">
+  <span id="mt-close">✕</span>
+  <div id="mt-content">
+    <div id="mt-label"></div>
+    <div id="mt-body"></div>
+    <div id="mt-action"></div>
+  </div>
+</div>
+
+<!-- Floating journey bubbles -->
+<div class="float-bubble" data-path="start"  style="left:12%; top:38%"><span class="fb-emoji">🌱</span> Just starting out</div>
+<div class="float-bubble" data-path="settle" style="left:38%; top:22%"><span class="fb-emoji">🏠</span> Settling down</div>
+<div class="float-bubble" data-path="build"  style="right:12%; top:32%"><span class="fb-emoji">📈</span> Growing my wealth</div>
+<div class="float-bubble" data-path="retire" style="right:10%; top:58%"><span class="fb-emoji">🏡</span> Near retirement</div>
+<div class="float-bubble" data-path="debt"   style="left:18%; top:62%"><span class="fb-emoji">🚨</span> I'm in debt</div>
+
+<div id="content-panel">
+  <div id="cp-resize-handle"></div>
+  <div id="cp-inner">
+    <div id="cp-step-badge"></div>
+    <div id="cp-title"></div>
+    <div id="cp-intro"></div>
+    <div id="cp-items"></div>
+  </div>
+  <div id="cp-admin-bar">
+    <span id="cp-admin-label">Admin mode</span>
+    <label class="cp-toggle-wrap">
+      <input type="checkbox" id="cp-admin-toggle">
+      <span class="cp-toggle-slider"></span>
+    </label>
+  </div>
+</div>
+
+<!-- Bottom topic bar -->
+<div id="bottom-bar">
+  <div id="bottom-scroll"></div>
+</div>
+
+<div id="controls">
+  <div class="ctrl"><span class="ctrl-icon">🫧</span> <span class="ctrl-long">Tap a bubble to start your journey</span></div>
+  <div class="ctrl"><span class="ctrl-icon">👆</span> <span class="ctrl-long">Drag to spin</span></div>
+  <div class="ctrl"><span class="ctrl-icon">🔍</span> <span class="ctrl-long">Scroll to zoom</span></div>
+  <div class="ctrl"><span class="ctrl-dot-a"></span><span class="ctrl-dot-b"></span> <span class="ctrl-long">Tap any node to read</span></div>
+</div>
+
+<!-- Path guide panel -->
+<div id="path-guide">
+  <div id="pg-exit">✕ Exit path</div>
+  <div id="pg-label"></div>
+  <div id="pg-step"></div>
+  <div id="pg-dots"></div>
+  <div id="pg-nav">
+    <button id="pg-back">← Back</button>
+    <button id="pg-next">Next →</button>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ── DATA ─────────────────────────────────────────────────────────────────────
+
+const BASE = 'https://smartaboutmoney.co.za';
+
+const strandA = [
+  {
+    id: 'saving', label: 'Saving & Investing', strand: 'A',
+    tip: 'Grow your money — from basics to advanced investment strategies.',
+    children: [
+      { id: 'invbasics',  label: 'Investment Basics',  tip: 'What is investing, why it matters, and how to get started — even with a small amount.', url: BASE + '/saving-and-investing/investment-basics/' },
+      { id: 'unittrusts', label: 'Unit Trusts',        tip: 'Pool your money with other investors for professional, diversified management.', url: BASE + '/saving-and-investing/unit-trusts/' },
+      { id: 'etfs',       label: 'ETFs',               tip: 'Exchange-traded funds — low-cost, diversified, and easy to buy on the JSE.', url: BASE + '/saving-and-investing/exchange-traded-funds/' },
+    ]
+  },
+  {
+    id: 'retirement', label: 'Retirement', strand: 'A',
+    tip: 'Plan now so you can stop working by choice, not necessity.',
+    children: [
+      { id: 'gettingret', label: 'Getting to Retirement', tip: 'Retirement annuities, pension funds, provident funds — how they work and what to do.', url: BASE + '/retirement/getting-to-retirement/' },
+      { id: 'atret',      label: 'At Retirement',         tip: 'What happens on day one of retirement — living annuities, drawdown rates, and more.', url: BASE + '/retirement/at-retirement/' },
+      { id: 'twopot',     label: 'Two-Pot System',        tip: 'SA\'s new retirement framework — understand your savings and retirement component.', url: BASE + '/retirement/two-pot-system/' },
+    ]
+  },
+  {
+    id: 'insurance', label: 'Insurance', strand: 'A',
+    tip: 'Protect yourself, your family, and what you\'ve built.',
+    children: [
+      { id: 'lifeins',   label: 'Life Insurance',     tip: 'If you\'re gone, your family\'s lifestyle doesn\'t have to be.', url: BASE + '/insurance/insuring-your-life/' },
+      { id: 'incomeprot',label: 'Income Protection',  tip: 'If you can\'t work, your income still comes in. This is the one most people skip.', url: BASE + '/insurance/income-protection/' },
+      { id: 'healthcare', label: 'Healthcare Cover',  tip: 'Medical aid, gap cover, hospital plans — the differences explained simply.', url: BASE + '/insurance/healthcare-cover/' },
+    ]
+  },
+  {
+    id: 'debt', label: 'Debt', strand: 'A',
+    tip: 'Understand credit, manage debt, and take back control.',
+    children: [
+      { id: 'creditwork', label: 'Working with Credit', tip: 'What is credit, how a credit score works, and how to use it to your advantage.', url: BASE + '/debt/working-with-credit/' },
+      { id: 'managingdebt',label: 'Managing Debt',      tip: 'Already in debt? Here\'s a practical path out — structured and achievable.', url: BASE + '/debt/managing-debt/' },
+      { id: 'creditlife',  label: 'Credit Life Cover',  tip: 'The insurance that pays your debt if you die or can\'t work. Often misunderstood.', url: BASE + '/insurance/credit-life-cover/' },
+    ]
+  },
+  {
+    id: 'tax', label: 'Tax', strand: 'A',
+    tip: 'Pay what you owe — not a cent more.',
+    children: [
+      { id: 'taxwepay',  label: 'Taxes We Pay',            tip: 'Income tax, VAT, capital gains — a plain-language guide to SA\'s tax landscape.', url: BASE + '/tax/taxes-we-pay/' },
+      { id: 'taxfree',   label: 'Tax-Free Savings',         tip: 'R36 000/year growing completely tax-free. The most overlooked savings tool in SA.', url: BASE + '/saving-and-investing/investment-products/' },
+      { id: 'taxretire', label: 'Retirement Tax Breaks',    tip: 'Contribute to a retirement fund and get a tax deduction. Two wins in one.', url: BASE + '/tools-and-calculators/tax-deductible-retirement-fund-contributions/' },
+    ]
+  },
+  {
+    id: 'smallbiz', label: 'Small Business', strand: 'A',
+    tip: 'Financial know-how for SA\'s entrepreneurs and self-employed.',
+    children: [
+      { id: 'starting',  label: 'Starting a Business', tip: 'Registering, funding, and structuring your new business the right way from day one.', url: BASE + '/small-business/starting-a-new-business/' },
+      { id: 'bizloan',   label: 'Business Loans',       tip: 'What banks look for, what to prepare, and how to give yourself the best shot.', url: BASE + '/small-business/starting-a-new-business/what-should-i-know-about-obtaining-a-start-up-business-loan-from-my-bank/' },
+      { id: 'bizfinance', label: 'Managing Finances',   tip: 'Cash flow, tax, VAT registration — the financial fundamentals every owner needs.', url: BASE + '/small-business/managing-financially-as-a-business-owner/' },
+    ]
+  },
+  {
+    id: 'tools', label: 'Tools & Calculators', strand: 'A',
+    tip: 'Run the numbers on your actual situation.',
+    children: [
+      { id: 'healthcheck', label: 'Financial Health Check', tip: 'Answer 10 questions. Get a clear picture of where you stand and what to fix first.', url: BASE + '/tools-and-calculators/financial-health-check/' },
+      { id: 'budget',      label: 'Budget Planner',         tip: 'Map your income vs expenses. Know exactly where your money goes every month.', url: BASE + '/tools-and-calculators/budget-planner/' },
+      { id: 'retcalc',     label: 'Retirement Calculator',  tip: 'Will you have enough? Run your numbers now — not when it\'s too late.', url: BASE + '/tools-and-calculators/retirement-savings-calculator/' },
+    ]
+  },
+  {
+    id: 'hottopics', label: 'Hot Topics', strand: 'A',
+    tip: 'What\'s happening in SA finance right now.',
+    children: [
+      { id: 'news',    label: 'Latest Articles',   tip: 'Fresh analysis on markets, policy changes, and what they mean for your money.', url: BASE + '/hot-topics/' },
+      { id: 'videos',  label: 'Watch & Learn',     tip: 'Short, practical videos explaining complex financial topics in plain language.', url: BASE + '/videos/watch-and-learn/' },
+      { id: 'glossary',label: 'Glossary',          tip: 'Financial jargon decoded. Look up any term you don\'t understand — no judgment.', url: BASE + '/glossary-page/' },
+    ]
+  },
+];
+
+const strandB = [
+  {
+    id: 'about', label: 'Smart About Money', strand: 'B',
+    tip: 'Free financial education for every South African.',
+    children: [
+      { id: 'mission',  label: 'Our Mission',       tip: 'Empowering South Africans to make good money decisions — at every life stage, for free.' },
+      { id: 'asisa',    label: 'An ASISA Initiative',tip: 'Backed by SA\'s leading asset managers, insurers, and financial institutions.', url: BASE + '/about-us/' },
+      { id: 'faq',      label: 'FAQ',               tip: 'Your most common questions about money, answered in plain language.', url: BASE + '/faq/' },
+    ]
+  },
+  {
+    id: 'starting', label: 'Just Starting Out', strand: 'B',
+    tip: 'Your first job, your first salary, your first financial decisions.',
+    children: [
+      { id: 'goodfooting', label: 'Good Financial Footing', tip: 'The fundamentals: budget, emergency fund, no bad debt. Build these first.', url: BASE + '/planning-for-life/a-good-financial-footing/' },
+      { id: 'firstsave',   label: 'Start Saving Now',       tip: 'Even R200/month invested at 25 beats R2000/month started at 45. Time is the edge.', url: BASE + '/saving-and-investing/investment-basics/' },
+      { id: 'creditstart', label: 'Building Credit',        tip: 'A good credit score opens doors. Here\'s how to build one responsibly from scratch.', url: BASE + '/debt/working-with-credit/' },
+    ]
+  },
+  {
+    id: 'settlingdown', label: 'Settling Down', strand: 'B',
+    tip: 'Marriage, home ownership, starting a family — financial decisions that last.',
+    children: [
+      { id: 'cohabite', label: 'Living Together',    tip: 'Cohabitation agreements, joint finances, and protecting yourself legally.', url: BASE + '/planning-for-life/settling-down/' },
+      { id: 'homeloan', label: 'Buying a Home',      tip: 'Bonds, deposits, transfer costs — what buying property actually costs in SA.', url: BASE + '/planning-for-life/settling-down/' },
+      { id: 'familyins', label: 'Protecting Your Family', tip: 'Life cover, disability, dread disease — if something happens to you, what happens to them?', url: BASE + '/insurance/insuring-your-life/' },
+    ]
+  },
+  {
+    id: 'midlife', label: 'Mid-Life', strand: 'B',
+    tip: 'Peak earning years — maximise them before they\'re gone.',
+    children: [
+      { id: 'buildwealth', label: 'Building Wealth',      tip: 'Invest aggressively now. Mid-life is when compound interest really starts working for you.', url: BASE + '/planning-for-life/mid-life/' },
+      { id: 'kidseduc',    label: 'Education Planning',   tip: 'University costs are rising. Start an education savings plan before they\'re in grade 1.', url: BASE + '/saving-and-investing/investment-products/' },
+      { id: 'midtax',      label: 'Tax Efficiency',       tip: 'At your peak income, tax is your biggest expense. Structure your finances to minimise it legally.', url: BASE + '/tax/taxes-we-pay/' },
+    ]
+  },
+  {
+    id: 'laterworking', label: 'Later Working Years', strand: 'B',
+    tip: 'The retirement countdown. Every decision now matters more than ever.',
+    children: [
+      { id: 'maxsavings', label: 'Maximise Savings',     tip: 'Boost retirement contributions. At 50+, tax deductions can be substantial.', url: BASE + '/planning-for-life/later-working-years/' },
+      { id: 'debtfree',   label: 'Become Debt-Free',     tip: 'Enter retirement with zero debt. Bond paid off, car paid off, credit clear.', url: BASE + '/debt/managing-debt/' },
+      { id: 'retready',   label: 'Retirement Readiness', tip: 'Run your numbers. Do you have 25x your annual expenses saved? If not, here\'s what to do.', url: BASE + '/tools-and-calculators/retirement-savings-calculator/' },
+    ]
+  },
+  {
+    id: 'estateplanning', label: 'Estate Planning', strand: 'B',
+    tip: 'What happens to your money when you\'re gone matters.',
+    children: [
+      { id: 'will',        label: 'Your Will',         tip: 'Without a will, the government decides who gets what. This is not what you want.', url: BASE + '/planning-for-life/estate-planning/' },
+      { id: 'beneficiary', label: 'Beneficiaries',     tip: 'Naming the right beneficiaries on your policies and investments — easy to get wrong.', url: BASE + '/retirement/getting-to-retirement/what-is-a-beneficiary-fund/' },
+      { id: 'estatetax',   label: 'Estate Duty',       tip: 'SA levies tax on estates above R3.5m. Simple planning can protect your family from a large bill.', url: BASE + '/planning-for-life/estate-planning/' },
+    ]
+  },
+  {
+    id: 'finadvice', label: 'Getting Financial Advice', strand: 'B',
+    tip: 'The right advisor at the right time changes everything.',
+    children: [
+      { id: 'findadvisor', label: 'Finding an Advisor',  tip: 'What to look for, what questions to ask, and how to verify their credentials.', url: BASE + '/planning-for-life/getting-financial-advice/' },
+      { id: 'advisorfees', label: 'How Advisors Are Paid',tip: 'Commission vs fee-based — understanding how your advisor earns money protects you.', url: BASE + '/planning-for-life/getting-financial-advice/' },
+      { id: 'diy',         label: 'DIY Investing',        tip: 'Not ready for an advisor? Here\'s what you can do safely on your own to start.', url: BASE + '/saving-and-investing/investment-basics/' },
+    ]
+  },
+  {
+    id: 'sustainable', label: 'Sustainable Investing', strand: 'B',
+    tip: 'Grow your wealth while investing in the world you want to live in.',
+    children: [
+      { id: 'esg',       label: 'ESG Investing',        tip: 'Environmental, Social, and Governance — what it means and how to invest this way in SA.', url: BASE + '/saving-and-investing/sustainable-investing/' },
+      { id: 'hedgefunds',label: 'Hedge Funds',          tip: 'High-risk, high-reward alternative investments — when they make sense and when they don\'t.', url: BASE + '/saving-and-investing/hedge-funds/' },
+      { id: 'offshore',  label: 'Going Offshore',       tip: 'Protect yourself from rand weakness by investing a portion of your portfolio offshore.', url: BASE + '/saving-and-investing/markets-and-asset-classes/' },
+    ]
+  },
+];
+
+const rungHubs = [[0,1],[1,4],[2,2],[3,1],[4,3],[5,3],[6,0],[7,6]];
+
+// ── DEBT CONTENT ──────────────────────────────────────────────────────────────
+
+const ARTICLE_CONTENT = {
+  'what-is-credit': 'It can be exciting to be offered the opportunity to buy something without having the means to pay for it in full immediately. This is known as buying on credit, but you should use it with care or you can end up with a debt problem. Once you start earning an income you will be offered all kinds of tempting credit. Credit comes in many forms, but it must involve some deferral of repayment, and the credit provider must impose a fee, charge or interest for allowing you to pay the debt off later.',
+  'what-does-credit-cost': 'All credit comes at a cost — but some credit attracts higher interest rates than other credit. The cost of your credit may also be influenced by your ability to afford a loan and how you have handled credit in the past as reflected in your credit report. Ideally you should choose the cheapest form of credit to fund your purchase. Try to avoid using costly unsecured credit — save to prefund large purchases where possible.',
+  'what-is-the-difference-between-good-and-bad-debt': 'Good financial habits involve only taking on debt when it is wise to do so. People often refer to this as "good" debt versus "bad" debt, although the lines are not always clear. It is better to use debt for things that help you increase your future wealth or income. Most people need a loan to fund property ownership — property is generally a good asset. Bad debt is typically used to fund consumption: luxuries, holidays, or day-to-day expenses.',
+  'how-can-i-improve-my-credit-score': 'Your credit score is a critical indicator of your financial wellbeing and an important reference for lenders who assess your creditworthiness. To improve it: pay all accounts on time every month, keep your credit card balances below 30% of the limit, avoid applying for multiple credit accounts at once, and check your credit report annually for errors. Even small consistent changes can move your score significantly within 12–18 months.',
+  'how-do-i-know-i-have-a-debt-problem': 'You have a debt problem when you are spending more than you earn and borrowing to make up the shortfall. Signs include: paying only minimums on credit cards, using one credit card to pay another, missing payment deadlines, receiving calls from creditors, or feeling anxious about opening bank statements. The first step is acknowledging the problem — debt ignored grows faster than debt faced.',
+  'how-can-i-pay-off-my-debt-faster': 'If you want to pay off your debt faster, you need to pay more than the minimum repayment. Two proven methods: the Snowball (pay the smallest debt first for psychological momentum) or the Avalanche (pay the highest interest rate first to save the most money). Even an extra R200/month makes a meaningful difference. The sacrifice you make now will ultimately give you more money — you will save on the interest you would otherwise have paid.',
+  'what-is-debt-review': 'Debt review — also known as debt counselling — is aimed at rehabilitating you if you are over-indebted. You are over-indebted if you do not have enough money to repay all your debts after meeting your essential monthly expenses. A registered debt counsellor will assess your situation, negotiate with your creditors for lower instalments, and create a repayment plan. During debt review, creditors cannot take legal action against you.',
+  'what-is-a-debt-consolidation-loan': 'A debt consolidation loan combines multiple debts into one loan with a single monthly payment. This simplifies your finances and may reduce your overall interest rate. However, be cautious: consolidation only helps if you change the spending habits that caused the debt. Extending your repayment term can mean paying more interest overall, even at a lower rate. Always calculate the total cost — not just the monthly payment.',
+};
+
+const DEBT_CONTENT = {
+  debt: {
+    title: 'Understanding Your Debt',
+    intro: 'Before you can fight debt, you need to see it clearly. Most people avoid the numbers — that\'s how debt wins.',
+    items: [
+      {
+        id: 'creditwork', icon: '💳', title: 'Working with Credit',
+        body: 'Credit is borrowed money you promise to repay — with interest. Your credit score (300–850) tells lenders how reliable you are. A good score opens doors; a bad one closes them.',
+        insight: 'Your score is checked every time you apply for a phone contract, home loan, or car finance.',
+        articles: [
+          { title: 'What is credit?', url: '/debt/working-with-credit/what-is-credit/' },
+          { title: 'What does credit cost?', url: '/debt/working-with-credit/what-does-credit-cost/' },
+          { title: 'Good debt vs bad debt', url: '/debt/working-with-credit/what-is-the-difference-between-good-and-bad-debt/' },
+          { title: 'What is my credit report?', url: '/debt/working-with-credit/what-is-my-credit-report/' },
+          { title: 'How can I improve my credit score?', url: '/debt/working-with-credit/how-can-i-improve-my-credit-score/' },
+          { title: 'What is a credit card?', url: '/debt/working-with-credit/what-is-a-credit-card/' },
+          { title: 'What is buy now pay later?', url: '/debt/working-with-credit/what-is-buy-now-pay-later/' },
+          { title: 'What is a payday loan?', url: '/debt/working-with-credit/what-is-a-payday-loan/' },
+          { title: 'What is a student loan?', url: '/debt/working-with-credit/what-is-a-student-loan/' },
+          { title: 'Financing a car — what you need to know', url: '/debt/working-with-credit/what-do-i-need-to-know-about-financing-a-car/' },
+        ]
+      },
+      {
+        id: 'managingdebt', icon: '📉', title: 'Managing Debt',
+        body: 'Two proven methods: the Snowball (pay smallest debts first for momentum) or the Avalanche (pay highest interest first to save money). Either beats paying minimums only.',
+        insight: 'Paying only minimums on a R10,000 credit card at 22% interest takes 8+ years to clear.',
+        articles: [
+          { title: 'How do I know I have a debt problem?', url: '/debt/managing-debt/how-do-i-know-i-have-a-debt-problem/' },
+          { title: 'What can I do if I have a debt problem?', url: '/debt/managing-debt/what-can-i-do-if-i-have-a-debt-problem/' },
+          { title: 'How can I pay off my debt faster?', url: '/debt/managing-debt/how-can-i-pay-off-my-debt-faster/' },
+          { title: 'What is debt review?', url: '/debt/managing-debt/what-is-debt-review/' },
+          { title: 'What is a debt consolidation loan?', url: '/debt/managing-debt/what-is-a-debt-consolidation-loan/' },
+          { title: 'Is debt consolidation a good idea?', url: '/debt/managing-debt/is-debt-consolidation-a-good-idea/' },
+          { title: 'What is reckless lending?', url: '/debt/managing-debt/what-is-reckless-lending-and-how-do-i-prove-it/' },
+          { title: 'When does my debt prescribe?', url: '/debt/managing-debt/when-does-my-debt-prescribe/' },
+          { title: 'What rights do I have when goods are repossessed?', url: '/debt/managing-debt/what-rights-do-i-have-when-my-goods-are-repossessed/' },
+          { title: 'Why should I not ignore a letter of demand?', url: '/debt/managing-debt/why-should-i-not-ignore-a-letter-of-demand/' },
+        ]
+      },
+      {
+        id: 'creditlife', icon: '🛡️', title: 'Credit Life Cover',
+        body: 'Credit life cover pays your debt if you die, become disabled, or lose your job. Most lenders bundle it in — but you can often get it cheaper elsewhere.',
+        insight: 'You have the right to choose your own credit life insurer. Check if you\'re overpaying.',
+        articles: [
+          { title: 'What is credit life cover?', url: '/insurance/credit-life-cover/' },
+          { title: 'Do I need credit life cover?', url: '/insurance/credit-life-cover/' },
+          { title: 'Can I choose my own credit life insurer?', url: '/insurance/credit-life-cover/' },
+        ]
+      }
+    ]
+  },
+  tools: {
+    title: 'Your Debt-Busting Tools',
+    intro: 'These free tools show you exactly where you stand. Run the numbers — reality is usually less scary than you imagine.',
+    items: [
+      { id: 'healthcheck', icon: '🩺', title: 'Financial Health Check', body: '10 quick questions that give you a clear picture of your financial health. It tells you where the bleeding is — so you know what to fix first.', insight: 'Most people score lower than expected in "debt management". That\'s the starting point.', articles: [] },
+      { id: 'budget', icon: '📊', title: 'Budget Planner', body: 'Map every rand coming in and every rand going out. Most people in debt don\'t have a budget — they\'re flying blind. This ends that.', insight: 'The average SA household spends 23% of income on debt repayments. The target is under 10%.', articles: [] },
+      { id: 'debtcalc', icon: '🧮', title: 'Debt Repayment Calculator', body: 'Enter your debt, interest rate, and monthly payment. See exactly when you\'ll be debt-free — and what happens if you pay R200 more per month.', insight: 'An extra R500/month on a R50,000 debt can cut 3 years off your repayment timeline.', articles: [] }
+    ]
+  },
+  starting: {
+    title: 'Build While You Repay',
+    intro: 'Getting out of debt isn\'t just about paying it back — it\'s about building habits so you never end up here again.',
+    items: [
+      { id: 'goodfooting', icon: '🏗️', title: 'Good Financial Footing', body: 'Three non-negotiables: a small emergency fund (R5,000 minimum), no new debt, and a written budget. These three things break the debt cycle.', insight: '78% of people who go into debt again had no emergency fund when the crisis hit.', articles: [{ title: 'A good financial footing', url: '/planning-for-life/a-good-financial-footing/' }] },
+      { id: 'firstsave', icon: '💰', title: 'Save While in Debt', body: 'Counterintuitive but true: saving R200/month while repaying debt is more effective than putting that R200 toward debt. The emergency fund stops new debt from forming.', insight: 'Baby Step 1: R5,000–R10,000 emergency fund FIRST. Then attack debt hard.', articles: [] },
+      { id: 'creditstart', icon: '📈', title: 'Rebuilding Your Credit', body: 'As you pay down debt, your credit score recovers. Pay on time, keep balances below 30% of your limit, and don\'t close old accounts.', insight: 'A credit score can recover significantly within 12–18 months of consistent on-time payments.', articles: [] }
+    ]
+  },
+  hottopics: {
+    title: 'Stay Sharp',
+    intro: 'The financial world moves fast — interest rates, debt laws, and new tools can all affect your situation.',
+    items: [
+      { id: 'news', icon: '📰', title: 'Latest Debt Articles', body: 'Fresh, practical articles on credit, debt management, and financial recovery. Written for real South Africans — not financial experts.', insight: null, articles: [] },
+      { id: 'videos', icon: '▶️', title: 'Watch & Learn', body: 'Short videos explaining debt in plain language. How compound interest works, how debt review works, what the National Credit Act means for you.', insight: null, articles: [] },
+      { id: 'glossary', icon: '📖', title: 'Debt Glossary', body: 'Credit bureau, prescribed debt, debt review, sequestration — understand the words lenders use so you\'re never caught off guard.', insight: null, articles: [] }
+    ]
+  }
+};
+
+// ── BUILD NAV BAR ─────────────────────────────────────────────────────────────
+
+const navBar = document.getElementById('nav-bar');
+
+// Path pills
+const pathDefs = [
+  { key: 'start',  label: '🌱 Starting out' },
+  { key: 'settle', label: '🏠 Settling down' },
+  { key: 'build',  label: '📈 Growing wealth' },
+  { key: 'retire', label: '🏡 Near retirement' },
+  { key: 'debt',   label: '🚨 In debt' },
+];
+pathDefs.forEach(({ key, label }) => {
+  const p = document.createElement('div');
+  p.className = 'nav-pill path'; p.textContent = label;
+  p.dataset.path = key;
+  navBar.appendChild(p);
+});
+
+// ── Bottom bar: All + topic + journey pills ───────────────────────────────────
+const bottomScroll = document.getElementById('bottom-scroll');
+
+const allPill = document.createElement('div');
+allPill.className = 'nav-pill all active';
+allPill.textContent = 'All';
+allPill.dataset.id = 'all';
+bottomScroll.appendChild(allPill);
+
+strandA.forEach(hub => {
+  const p = document.createElement('div');
+  p.className = 'nav-pill a'; p.textContent = hub.label; p.dataset.id = hub.id;
+  bottomScroll.appendChild(p);
+});
+
+const divEl = document.createElement('div');
+divEl.className = 'nav-divider';
+bottomScroll.appendChild(divEl);
+
+strandB.forEach(hub => {
+  const p = document.createElement('div');
+  p.className = 'nav-pill b'; p.textContent = hub.label; p.dataset.id = hub.id;
+  bottomScroll.appendChild(p);
+});
+
+// ── SCENE ─────────────────────────────────────────────────────────────────────
+
+const container = document.getElementById('canvas-container');
+const W = () => container.clientWidth;
+const H = () => container.clientHeight;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xffffff);
+scene.fog = new THREE.FogExp2(0xffffff, 0.005);
+
+const camera = new THREE.PerspectiveCamera(50, W() / H(), 0.1, 120);
+camera.position.set(0, 0, 32);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(W(), H());
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+container.appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(W(), H());
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.left = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+labelRenderer.domElement.style.overflow = 'hidden';
+container.appendChild(labelRenderer.domElement);
+
+// ── LIGHTING ──────────────────────────────────────────────────────────────────
+
+scene.add(new THREE.AmbientLight(0xffffff, 1.1));
+const purpleLight = new THREE.PointLight(0x7f4098, 2.0, 50);
+purpleLight.position.set(8, 10, 12);
+scene.add(purpleLight);
+const tealLight = new THREE.PointLight(0x00aead, 1.5, 50);
+tealLight.position.set(-8, -10, 8);
+scene.add(tealLight);
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.7);
+keyLight.position.set(5, 5, 8); scene.add(keyLight);
+
+// ── SPHERE GEOMETRY ───────────────────────────────────────────────────────────
+
+const SPHERE_R = 7;
+const HUB_R    = 0.50;
+const CHILD_R  = 0.20;
+
+const pivot = new THREE.Group();
+scene.add(pivot);
+let rotX = -0.10, rotY = 0;
+
+const bgWire = new THREE.WireframeGeometry(new THREE.SphereGeometry(SPHERE_R, 20, 16));
+pivot.add(new THREE.LineSegments(bgWire,
+  new THREE.LineBasicMaterial({ color: 0xe0e0e0, transparent: true, opacity: 0.10 })));
+
+const eqMesh = new THREE.Mesh(
+  new THREE.TorusGeometry(SPHERE_R * 0.995, 0.055, 8, 100),
+  new THREE.MeshBasicMaterial({ color: 0xcccccc, transparent: true, opacity: 0.40 })
+);
+eqMesh.rotation.x = Math.PI / 2;
+pivot.add(eqMesh);
+
+function hubAngles(hubIdx, isA) {
+  const sign = isA ? 1 : -1;
+  const ring  = hubIdx % 2;
+  const ri    = Math.floor(hubIdx / 2);
+  if (ring === 0) return { phi: ri * Math.PI / 2,               lat: sign * 1.05 };
+  else            return { phi: ri * Math.PI / 2 + Math.PI / 4, lat: sign * 0.52 };
+}
+
+function sphPos(phi, lat, r) {
+  r = r !== undefined ? r : SPHERE_R;
+  return new THREE.Vector3(
+    r * Math.cos(lat) * Math.cos(phi),
+    r * Math.sin(lat),
+    r * Math.cos(lat) * Math.sin(phi)
+  );
+}
+
+const CHILD_OFFSETS = [
+  { dphi: -0.30, dlat:  0.26 },
+  { dphi:  0.30, dlat:  0.26 },
+  { dphi:  0.00, dlat: -0.28 },
+];
+
+// ── MATERIALS ─────────────────────────────────────────────────────────────────
+
+function hubMat(isA) {
+  return new THREE.MeshStandardMaterial({
+    color: isA ? 0x7f4098 : 0x00aead,
+    emissive: isA ? 0x3a1050 : 0x005856,
+    emissiveIntensity: 0.25, roughness: 0.25, metalness: 0.45,
+    transparent: true, opacity: 1.0,
+  });
+}
+function childMat(isA) {
+  return new THREE.MeshStandardMaterial({
+    color: isA ? 0xa060c0 : 0x20c8c8,
+    emissive: isA ? 0x3a1050 : 0x005856,
+    emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.3,
+    transparent: true, opacity: 1.0,
+  });
+}
+function glowMat(isA, isHub) {
+  return new THREE.MeshBasicMaterial({
+    color: isA ? 0x7f4098 : 0x00aead, transparent: true,
+    opacity: isHub ? 0.09 : 0.05, side: THREE.BackSide,
+  });
+}
+const hoverMat = new THREE.MeshStandardMaterial({
+  color: 0xffffff, emissive: 0xb060e0, emissiveIntensity: 0.7,
+  roughness: 0.15, metalness: 0.5, transparent: true, opacity: 1.0,
+});
+
+// ── BUILD STRANDS ─────────────────────────────────────────────────────────────
+
+const allClickable = [];
+const hubGroups    = {};
+
+function buildSphereStrand(strandData, isA) {
+  const hubGeo   = new THREE.SphereGeometry(HUB_R,   24, 24);
+  const childGeo = new THREE.SphereGeometry(CHILD_R, 16, 16);
+  const hubGlow  = new THREE.SphereGeometry(HUB_R   * 1.55, 16, 16);
+  const cGlowGeo = new THREE.SphereGeometry(CHILD_R * 1.80, 12, 12);
+
+  strandData.forEach((hub, hubIdx) => {
+    const { phi, lat } = hubAngles(hubIdx, isA);
+    const hPos = sphPos(phi, lat);
+    const hOut = hPos.clone().normalize();
+
+    pivot.add(new THREE.Mesh(hubGlow, glowMat(isA, true))).position?.copy(hPos);
+    const hg = new THREE.Mesh(hubGlow, glowMat(isA, true));
+    hg.position.copy(hPos); pivot.add(hg);
+
+    const hMat  = hubMat(isA);
+    const hMesh = new THREE.Mesh(hubGeo, hMat);
+    hMesh.position.copy(hPos);
+    hMesh.userData = { data: hub, isHub: true, isA, originalMat: hMat, hubId: hub.id };
+    pivot.add(hMesh);
+    allClickable.push({ mesh: hMesh, data: hub, isHub: true, isA });
+
+    const lPos = hPos.clone().addScaledVector(hOut, HUB_R + 0.55);
+    const lDiv = document.createElement('div');
+    lDiv.className   = 'node-label ' + (isA ? 'hub-a' : 'hub-b');
+    lDiv.textContent = hub.label;
+    lDiv.addEventListener('click', e => { e.stopPropagation(); selectHub(hub.id); });
+    const lObj = new CSS2DObject(lDiv);
+    lObj.position.copy(lPos);
+    pivot.add(lObj);
+    hMesh.userData.labelObj = lObj;
+
+    hubGroups[hub.id] = { hubMesh: hMesh, childMeshes: [], phi, lat, isA };
+
+    hub.children.forEach((child, ci) => {
+      const sign = isA ? 1 : -1;
+      const off  = CHILD_OFFSETS[ci];
+      const cPos = sphPos(phi + off.dphi, lat + off.dlat * sign);
+      const cOut = cPos.clone().normalize();
+
+      pivot.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([hPos, cPos]),
+        new THREE.LineBasicMaterial({ color: isA ? 0x7f4098 : 0x00aead, transparent: true, opacity: 0.35 })
+      ));
+
+      const cg = new THREE.Mesh(cGlowGeo, glowMat(isA, false));
+      cg.position.copy(cPos); pivot.add(cg);
+
+      const cMat  = childMat(isA);
+      const cMesh = new THREE.Mesh(childGeo, cMat);
+      cMesh.position.copy(cPos);
+      cMesh.userData = { data: child, isHub: false, isA, originalMat: cMat, hubId: hub.id };
+      pivot.add(cMesh);
+      allClickable.push({ mesh: cMesh, data: child, isHub: false, isA });
+      hubGroups[hub.id].childMeshes.push(cMesh);
+
+      const clPos = cPos.clone().addScaledVector(cOut, CHILD_R + 0.40);
+      const cDiv2 = document.createElement('div');
+      cDiv2.className   = 'node-label ' + (isA ? 'child-a' : 'child-b');
+      cDiv2.textContent = child.label;
+      cDiv2.addEventListener('click', e => {
+        e.stopPropagation();
+        if (activePath === 'debt') {
+          renderContentPanel(hub.id, child.id);
+          return;
+        }
+        const r = cDiv2.getBoundingClientRect();
+        showMiniTip(child, r.left + r.width / 2, r.top);
+      });
+      const cLObj = new CSS2DObject(cDiv2);
+      cLObj.position.copy(clPos);
+      pivot.add(cLObj);
+      cMesh.userData.labelObj = cLObj;
+    });
+  });
+}
+
+buildSphereStrand(strandA, true);
+buildSphereStrand(strandB, false);
+
+// ── CENTRE NODE ───────────────────────────────────────────────────────────────
+
+const centerMesh = new THREE.Mesh(
+  new THREE.SphereGeometry(0.60, 28, 28),
+  new THREE.MeshStandardMaterial({
+    color: 0x7f4098, emissive: 0x00aead, emissiveIntensity: 0.5,
+    roughness: 0.2, metalness: 0.1, transparent: true, opacity: 1.0
+  })
+);
+pivot.add(centerMesh);
+
+[0.90, 1.4, 2.1].forEach((r, i) => {
+  const g = new THREE.Mesh(
+    new THREE.SphereGeometry(r, 20, 20),
+    new THREE.MeshBasicMaterial({ color: i < 1 ? 0x7f4098 : 0x00aead, transparent: true, opacity: [0.09, 0.04, 0.02][i], side: THREE.BackSide })
+  );
+  pivot.add(g);
+});
+
+const cDiv = document.createElement('div');
+cDiv.className = 'node-label hub-a';
+cDiv.style.fontSize = '12px'; cDiv.style.padding = '4px 14px';
+cDiv.style.background = 'linear-gradient(135deg, rgba(127,64,152,0.12), rgba(0,174,173,0.12))';
+cDiv.style.border = '1.5px solid rgba(127,64,152,0.5)';
+cDiv.textContent = 'Smart About Money';
+cDiv.addEventListener('click', e => { e.stopPropagation(); activePath ? exitPath() : selectHub('all'); });
+const cLabel = new CSS2DObject(cDiv);
+cLabel.position.set(0, 0.85, 0);
+pivot.add(cLabel);
+
+Object.values(hubGroups).forEach(({ hubMesh, isA }) => {
+  pivot.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), hubMesh.position.clone()]),
+    new THREE.LineBasicMaterial({ color: isA ? 0x7f4098 : 0x00aead, transparent: true, opacity: 0.25 })
+  ));
+});
+
+// ── RUNGS ─────────────────────────────────────────────────────────────────────
+
+rungHubs.forEach(([ai, bi]) => {
+  const { phi: phiA, lat: latA } = hubAngles(ai, true);
+  const { phi: phiB, lat: latB } = hubAngles(bi, false);
+  pivot.add(new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([sphPos(phiA, latA), sphPos(phiB, latB)]),
+    new THREE.LineBasicMaterial({ color: 0xbbbbbb, transparent: true, opacity: 0.20 })
+  ));
+});
+
+// ── PATH DEFINITIONS ──────────────────────────────────────────────────────────
+
+const PATHS = {
+  start:  { label: 'Just Starting Out',   color: '#7f4098', hubs: ['starting',     'saving',         'debt',            'hottopics'    ] },
+  settle: { label: 'Settling Down',        color: '#e67e22', hubs: ['settlingdown', 'insurance',      'saving',          'tools'        ] },
+  build:  { label: 'Growing My Wealth',   color: '#2980b9', hubs: ['midlife',      'tax',            'smallbiz',        'insurance'    ] },
+  retire: { label: 'Near Retirement',     color: '#00aead', hubs: ['laterworking', 'retirement',     'estateplanning',  'finadvice'    ] },
+  debt:   { label: 'Getting Out of Debt', color: '#c0392b', hubs: ['debt',         'tools',          'starting',        'hottopics'    ] },
+};
+
+// ── SELECTION STATE ───────────────────────────────────────────────────────────
+
+let activePath    = null;   // current PATHS key
+let pathStep      = 0;      // current step index
+let selectedHubIds = new Set();
+let targetRotX = null, targetRotY = null;
+let pathLines     = [];     // THREE.Line objects for path connections
+
+function rotateTo(hubId, tiltFactor = 0.75) {
+  if (!hubGroups[hubId]) return;
+  const { phi, lat } = hubGroups[hubId];
+  const rawY = Math.PI / 2 - phi;
+  let diffY = ((rawY - rotY) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI;
+  targetRotY = rotY + diffY;
+  targetRotX = -lat * tiltFactor;
+}
+
+function clearPathLines() {
+  pathLines.forEach(l => pivot.remove(l));
+  pathLines = [];
+}
+
+function drawPathLines(hubs, color) {
+  clearPathLines();
+  const c = new THREE.Color(color);
+  for (let i = 0; i < hubs.length - 1; i++) {
+    const g1 = hubGroups[hubs[i]], g2 = hubGroups[hubs[i + 1]];
+    if (!g1 || !g2) continue;
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([g1.hubMesh.position.clone(), g2.hubMesh.position.clone()]),
+      new THREE.LineBasicMaterial({ color: c, transparent: true, opacity: 0.70, linewidth: 2 })
+    );
+    pivot.add(line);
+    pathLines.push(line);
+  }
+}
+
+function updatePathGuide() {
+  if (!activePath) return;
+  const p = PATHS[activePath];
+  const guide = document.getElementById('path-guide');
+  guide.style.setProperty('--path-color', p.color);
+  document.getElementById('pg-label').textContent = p.label;
+  const hubId = p.hubs[pathStep];
+  const hubData = strandA.concat(strandB).find(h => h.id === hubId);
+  document.getElementById('pg-step').textContent =
+    `Step ${pathStep + 1} of ${p.hubs.length}: ${hubData ? hubData.label : hubId}`;
+  // Dots
+  const dots = document.getElementById('pg-dots');
+  dots.innerHTML = '';
+  p.hubs.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'pg-dot' + (i < pathStep ? ' done' : i === pathStep ? ' active' : '');
+    dots.appendChild(d);
+  });
+  document.getElementById('pg-back').style.display = pathStep === 0 ? 'none' : '';
+  document.getElementById('pg-next').textContent = pathStep === p.hubs.length - 1 ? 'Finish ✓' : 'Next →';
+}
+
+function applyPathStep() {
+  if (!activePath) return;
+  const p = PATHS[activePath];
+  const currentHub = p.hubs[pathStep];
+  selectedHubIds = new Set([currentHub]);
+  autoRotate = false;
+  rotateTo(currentHub, 0.70);
+  updatePathGuide();
+  // Show content panel only for debt path
+  if (activePath === 'debt') {
+    const hubId = PATHS[activePath].hubs[pathStep];
+    renderContentPanel(hubId);
+  } else {
+    hideContentPanel();
+  }
+}
+
+function activatePath(pathKey) {
+  activePath = pathKey;
+  pathStep   = 0;
+  const p    = PATHS[pathKey];
+  drawPathLines(p.hubs, p.color);
+  document.getElementById('path-guide').classList.add('visible');
+  document.getElementById('controls').style.display = 'none';
+  applyPathStep();
+  setActivePathPill(pathKey);
+  allPill.classList.remove('active');
+}
+
+function exitPath() {
+  activePath = null; pathStep = 0;
+  selectedHubIds.clear();
+  hideContentPanel();
+  clearPathLines();
+  targetRotX = null; targetRotY = null;
+  autoRotate = true;
+  document.getElementById('path-guide').classList.remove('visible');
+  document.getElementById('controls').style.display = '';
+  setActivePathPill(null);
+  setActiveNav('all');
+}
+
+// Path guide controls
+document.getElementById('pg-exit').addEventListener('click', exitPath);
+document.getElementById('pg-back').addEventListener('click', () => {
+  if (pathStep > 0) { pathStep--; applyPathStep(); }
+});
+document.getElementById('pg-next').addEventListener('click', () => {
+  const p = PATHS[activePath];
+  if (pathStep < p.hubs.length - 1) { pathStep++; applyPathStep(); }
+  else exitPath();
+});
+
+function selectHub(hubId) {
+  if (activePath) return; // in guided mode, nav bar disabled
+  if (hubId === 'all' || (selectedHubIds.size === 1 && selectedHubIds.has(hubId))) {
+    selectedHubIds.clear(); targetRotX = null; targetRotY = null;
+    autoRotate = true; setActiveNav('all'); return;
+  }
+  selectedHubIds = new Set([hubId]); autoRotate = false;
+  rotateTo(hubId);
+  setActiveNav(hubId);
+}
+
+function setActiveNav(hubId) {
+  document.querySelectorAll('.nav-pill:not(.path)').forEach(p => {
+    p.classList.toggle('active', p.dataset.id === hubId);
+  });
+  if (!hubId || hubId === 'all') allPill.classList.add('active');
+}
+
+function setActivePathPill(pathKey) {
+  document.querySelectorAll('.nav-pill.path').forEach(p => {
+    p.classList.toggle('active', p.dataset.path === pathKey);
+  });
+}
+
+// ── PANEL RESIZE ─────────────────────────────────────────────────────────────
+
+const resizeHandle = document.getElementById('cp-resize-handle');
+let isResizing = false;
+
+resizeHandle.addEventListener('mousedown', e => {
+  isResizing = true;
+  resizeHandle.classList.add('dragging');
+  e.preventDefault();
+});
+
+window.addEventListener('mousemove', e => {
+  if (!isResizing) return;
+  const panelRight = window.innerWidth - e.clientX;
+  const newWidth = Math.min(Math.max(panelRight, 280), window.innerWidth * 0.85);
+  contentPanel.style.width = newWidth + 'px';
+});
+
+window.addEventListener('mouseup', () => {
+  if (!isResizing) return;
+  isResizing = false;
+  resizeHandle.classList.remove('dragging');
+});
+
+document.getElementById('change-path').addEventListener('click', () => {
+  exitPath();
+  showBubbles();
+});
+
+// ── FLOATING BUBBLES ──────────────────────────────────────────────────────────
+
+let bubblesVisible = true;
+
+function showBubbles() {
+  bubblesVisible = true;
+  document.querySelectorAll('.float-bubble').forEach(b => {
+    b.classList.remove('fly-away', 'fade-away');
+    b.style.display = '';
+  });
+}
+
+function fadeBubblesAway() {
+  if (!bubblesVisible) return;
+  bubblesVisible = false;
+  document.querySelectorAll('.float-bubble').forEach(b => {
+    b.classList.add('fade-away');
+    setTimeout(() => { b.style.display = 'none'; }, 1900);
+  });
+}
+
+function hideBubbles(chosenPath) {
+  const bubbles = document.querySelectorAll('.float-bubble');
+  bubbles.forEach(b => b.classList.add('fly-away'));
+  setTimeout(() => {
+    bubbles.forEach(b => { b.style.display = 'none'; });
+    activatePath(chosenPath);
+  }, 420);
+}
+
+document.querySelectorAll('.float-bubble').forEach(bubble => {
+  bubble.addEventListener('click', () => {
+    hideBubbles(bubble.dataset.path);
+  });
+});
+
+navBar.addEventListener('click', e => {
+  if (navDragged) return;
+  const pill = e.target.closest('.nav-pill.path');
+  if (!pill) return;
+  // Toggle off if already active
+  if (activePath === pill.dataset.path) { exitPath(); return; }
+  activatePath(pill.dataset.path);
+});
+
+bottomScroll.addEventListener('click', e => {
+  const pill = e.target.closest('.nav-pill');
+  if (!pill) return;
+  fadeBubblesAway();
+  selectHub(pill.dataset.id);
+});
+
+let navDragging = false, navDragged = false, navStartX = 0, navScrollStart = 0;
+navBar.addEventListener('mousedown', e => {
+  navDragging = true; navDragged = false;
+  navStartX = e.pageX; navScrollStart = navBar.scrollLeft; e.preventDefault();
+});
+window.addEventListener('mousemove', e => {
+  if (!navDragging) return;
+  const dx = e.pageX - navStartX;
+  if (Math.abs(dx) > 4) navDragged = true;
+  navBar.scrollLeft = navScrollStart - dx;
+});
+window.addEventListener('mouseup', () => { navDragging = false; });
+navBar.addEventListener('wheel', e => { e.preventDefault(); navBar.scrollLeft += e.deltaY + e.deltaX; }, { passive: false });
+
+// ── INTERACTION ───────────────────────────────────────────────────────────────
+
+const raycaster = new THREE.Raycaster();
+const mouse2    = new THREE.Vector2(-9999, -9999);
+let hoveredMesh = null, autoRotate = true;
+let mouseIsDown = false, isDragging = false;
+let dragStartX = 0, dragStartY = 0, lastMouseX = 0, lastMouseY = 0;
+
+const miniTip = document.getElementById('mini-tip');
+const mtLabel = document.getElementById('mt-label');
+const mtBody  = document.getElementById('mt-body');
+const mtAction= document.getElementById('mt-action');
+
+function getHit(clientX, clientY) {
+  const rect = container.getBoundingClientRect();
+  mouse2.x =  ((clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse2.y = -((clientY - rect.top)  / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse2, camera);
+  const hits = raycaster.intersectObjects(allClickable.map(c => c.mesh));
+  return hits.length > 0 ? hits[0].object : null;
+}
+
+document.getElementById('mt-close').addEventListener('click', () => miniTip.classList.remove('visible'));
+document.getElementById('mt-action').addEventListener('click', () => {});
+
+function showMiniTip(data, clientX, clientY) {
+  mtLabel.textContent  = data.label;
+  mtBody.textContent   = data.tip || '';
+  mtAction.textContent = data.url ? 'Read more →' : '';
+  miniTip.dataset.url  = data.url || '';
+  miniTip.classList.add('visible');
+  const cardW = 300, cardH = 160;
+  const tx = Math.min(clientX + 16, window.innerWidth  - cardW - 10);
+  const ty = Math.min(clientY - 20, window.innerHeight - cardH - 10);
+  miniTip.style.left = Math.max(10, tx) + 'px';
+  miniTip.style.top  = Math.max(62, ty) + 'px';
+}
+
+function handleClick(clientX, clientY) {
+  const rect = container.getBoundingClientRect();
+  mouse2.x =  ((clientX - rect.left) / rect.width)  * 2 - 1;
+  mouse2.y = -((clientY - rect.top)  / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse2, camera);
+  // Check center mesh first
+  const centerHits = raycaster.intersectObject(centerMesh);
+  if (centerHits.length > 0) { activePath ? exitPath() : selectHub('all'); return; }
+  const hit = getHit(clientX, clientY);
+  if (!hit) { miniTip.classList.remove('visible'); return; }
+  const { data } = hit.userData;
+  if (hit.userData.isHub) { selectHub(data.id); return; }
+  // In debt path: all child clicks go to panel — never to website
+  if (activePath === 'debt' && !hit.userData.isHub) {
+    const hubId = hit.userData.hubId;
+    renderContentPanel(hubId, data.id);
+    return;
+  }
+  showMiniTip(data, clientX, clientY);
+}
+
+container.addEventListener('mousedown', e => {
+  mouseIsDown = true; isDragging = false;
+  dragStartX = lastMouseX = e.clientX; dragStartY = lastMouseY = e.clientY;
+  if (e.button !== 2) autoRotate = false;
+  fadeBubblesAway();
+});
+container.addEventListener('mousemove', e => {
+  if (mouseIsDown && e.button !== 2) {
+    const dx = e.clientX - lastMouseX, dy = e.clientY - lastMouseY;
+    if (!isDragging && (Math.abs(e.clientX - dragStartX) > 4 || Math.abs(e.clientY - dragStartY) > 4)) isDragging = true;
+    if (isDragging) {
+      rotY += dx * 0.010; rotX += dy * 0.010;
+      rotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotX));
+      container.style.cursor = 'grabbing'; lastMouseX = e.clientX; lastMouseY = e.clientY;
+      if (hoveredMesh) { hoveredMesh.material = hoveredMesh.userData.originalMat; hoveredMesh = null; }
+      targetRotX = null; targetRotY = null; return;
+    }
+  }
+  const hit = getHit(e.clientX, e.clientY);
+  if (hit) {
+    if (hoveredMesh !== hit) {
+      if (hoveredMesh) hoveredMesh.material = hoveredMesh.userData.originalMat;
+      hoveredMesh = hit; hoveredMesh.material = hoverMat;
+    }
+    container.style.cursor = 'pointer';
+  } else {
+    if (hoveredMesh) { hoveredMesh.material = hoveredMesh.userData.originalMat; hoveredMesh = null; }
+    container.style.cursor = mouseIsDown ? 'grabbing' : 'grab';
+  }
+});
+window.addEventListener('mouseup', e => {
+  if (e.button === 2) { isRightDragging = false; return; }
+  mouseIsDown = false; container.style.cursor = 'grab';
+  if (!hoveredMesh && selectedHubIds.size === 0) autoRotate = true;
+});
+container.addEventListener('mouseleave', () => {
+  mouseIsDown = false; isRightDragging = false;
+  if (hoveredMesh) { hoveredMesh.material = hoveredMesh.userData.originalMat; hoveredMesh = null; }
+  if (selectedHubIds.size === 0) autoRotate = true;
+});
+container.addEventListener('click', e => { if (isDragging) { isDragging = false; return; } handleClick(e.clientX, e.clientY); });
+
+let panX = 0, panY = 0, isRightDragging = false, rightLastX = 0, rightLastY = 0;
+function panSpeed() { return camera.position.z * 0.006; }
+container.addEventListener('mousedown', e => {
+  if (e.button === 2) { isRightDragging = true; rightLastX = e.clientX; rightLastY = e.clientY; autoRotate = false; e.preventDefault(); }
+}, true);
+container.addEventListener('mousemove', e => {
+  if (!isRightDragging) return;
+  panX += (e.clientX - rightLastX) * panSpeed(); panY -= (e.clientY - rightLastY) * panSpeed();
+  rightLastX = e.clientX; rightLastY = e.clientY;
+}, true);
+container.addEventListener('contextmenu', e => e.preventDefault());
+
+let touchStartX = 0, touchStartY = 0, lastTouchX = 0, lastTouchY = 0, isTouchDragging = false;
+let pinchStartDist = 0, pinchStartZ = 0, lastMidX = 0, lastMidY = 0;
+const MIN_Z = 8, MAX_Z = 60;
+
+container.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
+    pinchStartDist = Math.hypot(dx, dy); pinchStartZ = camera.position.z;
+    lastMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    lastMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    autoRotate = false; e.preventDefault(); return;
+  }
+  const t = e.touches[0];
+  touchStartX = lastTouchX = t.clientX; touchStartY = lastTouchY = t.clientY;
+  isTouchDragging = false; autoRotate = false; e.preventDefault();
+}, { passive: false });
+
+container.addEventListener('touchmove', e => {
+  if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX, dy = e.touches[0].clientY - e.touches[1].clientY;
+    camera.position.z = Math.max(MIN_Z, Math.min(MAX_Z, pinchStartZ * (pinchStartDist / Math.hypot(dx, dy))));
+    const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    panX += (midX - lastMidX) * panSpeed(); panY -= (midY - lastMidY) * panSpeed();
+    lastMidX = midX; lastMidY = midY; e.preventDefault(); return;
+  }
+  const t = e.touches[0], dx = t.clientX - lastTouchX, dy = t.clientY - lastTouchY;
+  if (!isTouchDragging && (Math.abs(t.clientX - touchStartX) > 4 || Math.abs(t.clientY - touchStartY) > 4)) isTouchDragging = true;
+  if (isTouchDragging) {
+    rotY += dx * 0.010; rotX += dy * 0.010;
+    rotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotX));
+    lastTouchX = t.clientX; lastTouchY = t.clientY;
+    targetRotX = null; targetRotY = null;
+    if (hoveredMesh) { hoveredMesh.material = hoveredMesh.userData.originalMat; hoveredMesh = null; }
+  }
+  e.preventDefault();
+}, { passive: false });
+
+container.addEventListener('touchend', e => {
+  if (!isTouchDragging) { const t = e.changedTouches[0]; handleClick(t.clientX, t.clientY); }
+  isTouchDragging = false;
+  if (selectedHubIds.size === 0) autoRotate = true;
+}, { passive: true });
+
+window.addEventListener('wheel', e => {
+  // If over the content panel, let it scroll normally
+  if (e.target.closest('#content-panel')) return;
+  const d = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaMode === 2 ? e.deltaY * 600 : e.deltaY;
+  camera.position.z = Math.max(MIN_Z, Math.min(MAX_Z, camera.position.z + d * 0.05));
+  e.preventDefault();
+}, { passive: false });
+
+// ── DEPTH FADE + SPOTLIGHT ────────────────────────────────────────────────────
+
+const _wp = new THREE.Vector3();
+
+function updateDepth() {
+  const hasSelection = selectedHubIds.size > 0;
+  cLabel.element.style.opacity = hasSelection ? '0' : '1';
+  centerMesh.material.opacity = hasSelection ? 0.08 : 1.0;
+
+  allClickable.forEach(({ mesh }) => {
+    if (mesh === hoveredMesh) return;
+    mesh.getWorldPosition(_wp);
+    const t = (_wp.z / SPHERE_R + 1) / 2;
+
+    if (hasSelection) {
+      const hubId = mesh.userData.hubId;
+      const isSel = selectedHubIds.has(hubId) &&
+        (mesh.userData.isHub ? selectedHubIds.has(mesh.userData.data.id) : true);
+      const isSelHub = mesh.userData.isHub && selectedHubIds.has(mesh.userData.data.id);
+      const isSelChild = !mesh.userData.isHub && selectedHubIds.has(mesh.userData.hubId);
+      const show = isSelHub || isSelChild;
+      mesh.material.opacity = show ? 1.0 : 0.05;
+      if (mesh.userData.labelObj)
+        mesh.userData.labelObj.element.style.opacity = show ? '1' : '0.03';
+    } else {
+      mesh.material.opacity = 0.15 + t * 0.85;
+      if (mesh.userData.labelObj)
+        mesh.userData.labelObj.element.style.opacity = Math.max(0.08, t * 0.9 + 0.08).toFixed(2);
+    }
+  });
+}
+
+function updateRotationAnimation() {
+  if (targetRotX === null || targetRotY === null) return;
+  const LERP = 0.06;
+  rotX += (targetRotX - rotX) * LERP; rotY += (targetRotY - rotY) * LERP;
+  if (Math.abs(rotX - targetRotX) < 0.001 && Math.abs(rotY - targetRotY) < 0.001) {
+    rotX = targetRotX; rotY = targetRotY; targetRotX = null; targetRotY = null;
+  }
+}
+
+function onResize() {
+  const w = W(), h = H(); if (w === 0 || h === 0) return;
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+  renderer.setSize(w, h); labelRenderer.setSize(w, h);
+}
+window.addEventListener('resize', onResize);
+setTimeout(onResize, 0);
+window.addEventListener('load', onResize);
+
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  if (autoRotate) rotY -= 0.0025;
+  updateRotationAnimation();
+  pivot.rotation.y = rotY; pivot.rotation.x = rotX;
+  pivot.position.x = panX; pivot.position.y = panY;
+  camera.lookAt(0, 0, 0);
+  purpleLight.intensity = 1.8 + Math.sin(clock.getElapsedTime() * 1.2) * 0.2;
+  tealLight.intensity   = 1.3 + Math.sin(clock.getElapsedTime() * 0.9 + 1) * 0.2;
+  updateDepth();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+animate();
+
+// ── CONTENT PANEL ─────────────────────────────────────────────────────────────
+
+const contentPanel = document.getElementById('content-panel');
+
+let currentHubId = null;
+
+function renderContentPanel(hubId, focusItemId = null) {
+  const data = DEBT_CONTENT[hubId];
+  if (!data) { contentPanel.classList.remove('visible'); return; }
+  currentHubId = hubId;
+
+  const isAdmin = document.getElementById('cp-admin-toggle').checked;
+  const showAll = isAdmin;
+  const itemsToShow = showAll ? data.items : focusItemId ? data.items.filter(i => i.id === focusItemId) : [];
+
+  document.getElementById('cp-step-badge').textContent = '🚨 Getting Out of Debt';
+  document.getElementById('cp-title').textContent = (showAll || !focusItemId) ? data.title : itemsToShow[0]?.title || data.title;
+  document.getElementById('cp-intro').textContent = (showAll || !focusItemId) ? data.intro : '';
+
+  // Back button when focused
+  const introEl = document.getElementById('cp-intro');
+  if (!showAll && focusItemId) {
+    const backBtn = document.createElement('button');
+    backBtn.textContent = '← All topics';
+    backBtn.style.cssText = 'background:none;border:none;color:#c0392b;font-size:12px;font-weight:700;cursor:pointer;padding:0;margin-bottom:12px;display:block;font-family:Inter,sans-serif;';
+    backBtn.addEventListener('click', () => renderContentPanel(hubId));
+    introEl.parentNode.insertBefore(backBtn, introEl);
+    introEl.textContent = '';
+  }
+
+  const itemsEl = document.getElementById('cp-items');
+  itemsEl.innerHTML = '';
+
+  // Always show all 3 as accordion — panel is self-contained
+
+  data.items.forEach(item => {
+    const isExpanded = focusItemId === item.id || showAll;
+    const card = document.createElement('div');
+    card.className = 'cp-card' + (isExpanded ? ' expanded' : ' collapsed');
+    card.dataset.itemId = item.id;
+    card.innerHTML = `
+      <button class="cp-edit-btn" data-id="${item.id}">✏️ Edit</button>
+      <div class="cp-card-header cp-card-toggle">
+        <span class="cp-card-icon">${item.icon}</span>
+        <span class="cp-card-title" data-field="title">${item.title}</span>
+        <span class="cp-chevron">${isExpanded ? '▲' : '▼'}</span>
+      </div>
+      <div class="cp-card-collapsible" style="display:${isExpanded ? 'block' : 'none'}">
+        <div class="cp-card-body" data-field="body">${item.body}</div>
+        ${item.insight ? `<div class="cp-card-insight">💡 ${item.insight}</div>` : ''}
+        ${(item.articles && item.articles.length > 0) ? `
+        <div class="cp-articles">
+          <div class="cp-articles-label">Articles (${item.articles.length})</div>
+          <ul class="cp-article-list" id="alist-${item.id}">
+            ${item.articles.map(a => {
+              const key = a.url ? a.url.replace(/\//g, '').split('debt').pop().split('managing').pop().split('working-with-credit').pop() || a.url.split('/').filter(Boolean).pop() : '';
+              const slug = a.url ? a.url.split('/').filter(Boolean).pop() : '';
+              const hasContent = !!ARTICLE_CONTENT[slug];
+              return `<li class="cp-article-item" data-slug="${slug}">
+                <span class="cp-article-dot">›</span>
+                <span class="cp-article-title">${a.title}</span>
+                ${hasContent ? '<span class="cp-article-expand">▾</span>' : ''}
+                ${hasContent ? `<div class="cp-article-body" style="display:none">${ARTICLE_CONTENT[slug]}</div>` : ''}
+              </li>`;
+            }).join('')}
+          </ul>
+        </div>` : ''}
+        <div class="cp-add-wrap">
+          <button class="cp-add-btn">+ Add article</button>
+          <div class="cp-add-form" style="display:none">
+            <input class="cp-add-title" type="text" placeholder="Article title…">
+            <textarea class="cp-add-body" rows="3" placeholder="Article summary…"></textarea>
+            <div style="display:flex;gap:8px;margin-top:6px;">
+              <button class="cp-add-save">Publish ✓</button>
+              <button class="cp-add-cancel">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="cp-save-btn" style="display:none">Save ✓</button>
+    `;
+
+    // Accordion toggle
+    card.querySelector('.cp-card-toggle').addEventListener('click', () => {
+      const isOpen = card.classList.contains('expanded');
+      // Collapse all
+      itemsEl.querySelectorAll('.cp-card').forEach(c => {
+        c.classList.remove('expanded'); c.classList.add('collapsed');
+        c.querySelector('.cp-card-collapsible').style.display = 'none';
+        c.querySelector('.cp-chevron').textContent = '▼';
+      });
+      if (!isOpen) {
+        card.classList.add('expanded'); card.classList.remove('collapsed');
+        card.querySelector('.cp-card-collapsible').style.display = 'block';
+        card.querySelector('.cp-chevron').textContent = '▲';
+      }
+    });
+
+    // Edit button
+    card.querySelector('.cp-edit-btn').addEventListener('click', () => {
+      const titleEl = card.querySelector('.cp-card-title');
+      const bodyEl  = card.querySelector('.cp-card-body');
+      const saveBtn = card.querySelector('.cp-save-btn');
+      titleEl.contentEditable = 'true';
+      bodyEl.contentEditable  = 'true';
+      saveBtn.style.display = 'block';
+      titleEl.focus();
+    });
+
+    // Article expand/collapse
+    card.querySelectorAll('.cp-article-item').forEach(li => {
+      li.addEventListener('click', () => {
+        const body = li.querySelector('.cp-article-body');
+        const arrow = li.querySelector('.cp-article-expand');
+        if (!body) return;
+        const open = body.style.display !== 'none';
+        body.style.display = open ? 'none' : 'block';
+        if (arrow) arrow.textContent = open ? '▾' : '▴';
+        li.classList.toggle('open', !open);
+      });
+    });
+
+    // Add article toggle
+    const addBtn  = card.querySelector('.cp-add-btn');
+    const addForm = card.querySelector('.cp-add-form');
+    addBtn.addEventListener('click', () => { addForm.style.display = 'block'; addBtn.style.display = 'none'; card.querySelector('.cp-add-title').focus(); });
+    card.querySelector('.cp-add-cancel').addEventListener('click', () => { addForm.style.display = 'none'; addBtn.style.display = ''; });
+    card.querySelector('.cp-add-save').addEventListener('click', () => {
+      const title = card.querySelector('.cp-add-title').value.trim();
+      if (!title) return;
+      const list = card.querySelector('.cp-article-list') || (() => {
+        const wrap = card.querySelector('.cp-articles') || document.createElement('div');
+        if (!wrap.classList.contains('cp-articles')) {
+          wrap.className = 'cp-articles';
+          wrap.innerHTML = '<div class="cp-articles-label">Articles (0)</div><ul class="cp-article-list"></ul>';
+          addForm.parentNode.insertBefore(wrap, addForm.parentNode.querySelector('.cp-add-wrap'));
+        }
+        return wrap.querySelector('.cp-article-list');
+      })();
+      const li = document.createElement('li'); li.className = 'cp-article-item';
+      li.innerHTML = `<span class="cp-article-dot">›</span><span class="cp-article-title">${title}</span><span class="cp-new-badge">new</span>`;
+      list.appendChild(li);
+      // Update count
+      const label = card.querySelector('.cp-articles-label');
+      if (label) label.textContent = `Articles (${list.children.length})`;
+      card.querySelector('.cp-add-title').value = '';
+      card.querySelector('.cp-add-body').value = '';
+      addForm.style.display = 'none'; addBtn.style.display = '';
+    });
+
+    // Save button
+    card.querySelector('.cp-save-btn').addEventListener('click', (e) => {
+      const titleEl = card.querySelector('.cp-card-title');
+      const bodyEl  = card.querySelector('.cp-card-body');
+      const saveBtn = e.target;
+      titleEl.contentEditable = 'false';
+      bodyEl.contentEditable  = 'false';
+      saveBtn.textContent = 'Saved ✓';
+      saveBtn.style.background = '#27ae60';
+      setTimeout(() => { saveBtn.style.display = 'none'; saveBtn.textContent = 'Save ✓'; saveBtn.style.background = ''; }, 1800);
+    });
+
+    itemsEl.appendChild(card);
+  });
+
+  contentPanel.classList.add('visible');
+}
+
+function hideContentPanel() {
+  contentPanel.classList.remove('visible');
+}
+
+// Admin toggle
+document.getElementById('cp-admin-toggle').addEventListener('change', (e) => {
+  document.body.classList.toggle('admin-mode', e.target.checked);
+  if (currentHubId) renderContentPanel(currentHubId);
+});
+</script>
+</body>
+</html>
