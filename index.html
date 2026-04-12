@@ -1457,7 +1457,14 @@ function handleClick(clientX, clientY) {
   const centerHits = raycaster.intersectObject(centerMesh);
   if (centerHits.length > 0) { activePath ? exitPath() : selectHub('all'); return; }
   const hit = getHit(clientX, clientY);
-  if (!hit) { miniTip.classList.remove('visible'); return; }
+  if (!hit) {
+    miniTip.classList.remove('visible');
+    if (selectedHubIds.size > 0 && !activePath) {
+      selectedHubIds.clear(); targetRotX = null; targetRotY = null; autoRotate = true;
+      hideContentPanel(); updateNavBar();
+    }
+    return;
+  }
   const { data } = hit.userData;
   if (hit.userData.isHub) { selectHub(data.id); return; }
   // In debt path: all child clicks go to panel — never to website
