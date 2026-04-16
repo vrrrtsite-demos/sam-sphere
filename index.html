@@ -64,11 +64,11 @@
   .nav-pill.path { font-size: 11px; font-weight: 800; padding: 4px 13px; background: #f7f7f7; color: #333; border-color: #ddd; }
   .nav-pill.path:hover:not(.active) { background: #eee; border-color: #bbb; }
   .nav-pill.path.active { color: #fff; border-color: transparent; box-shadow: 0 2px 10px rgba(0,0,0,0.20); }
-  .nav-pill.path[data-path="protect"].active  { background: #00AFAD; color: #5C2D72; }
-  .nav-pill.path[data-path="grow"].active     { background: #7F4098; }
-  .nav-pill.path[data-path="business"].active { background: #5C9E9C; }
-  .nav-pill.path[data-path="starter"].active  { background: #008E8C; color: #5C2D72; }
-  .nav-pill.path[data-path="discover"].active { background: #5C2D72; }
+  .nav-pill.path[data-path="beginner"].active { background: #00AFAD; color: #fff; }
+  .nav-pill.path[data-path="debt"].active     { background: #008E8C; color: #fff; }
+  .nav-pill.path[data-path="invest"].active   { background: #5C9E9C; color: #fff; }
+  .nav-pill.path[data-path="retire"].active   { background: #7F4098; color: #fff; }
+  .nav-pill.path[data-path="business"].active { background: #5C2D72; color: #fff; }
 
   .nav-pill.a { background: rgba(0,175,173,0.10); color: #7F4098; border-color: rgba(0,175,173,0.45); }
   .nav-pill.a.active { background: #00AFAD; color: #5C2D72; border-color: #00AFAD; box-shadow: 0 2px 10px rgba(0,175,173,0.40); }
@@ -922,11 +922,11 @@ rungHubs.forEach(([ai, bi]) => {
 // ── PATH DEFINITIONS ──────────────────────────────────────────────────────────
 
 const PATHS = {
-  protect:  { label: "Protect My Life",     color: "#008E8C", textColor: "#fff",    hubs: ["insurance", "health",     "estate",    "business"  ] },
-  grow:     { label: "Grow My Wealth",      color: "#7F4098", textColor: "#fff",    hubs: ["wealth",    "retirement", "employee",  "education" ] },
-  business: { label: "I'm a Business Owner",color: "#5C9E9C", textColor: "#fff",    hubs: ["business",  "employee",   "estate",    "retirement"] },
-  starter:  { label: "Just Starting Out",   color: "#008E8C", textColor: "#fff",    hubs: ["education", "insurance",  "health",    "wealth"    ] },
-  discover: { label: "About Smart About Money",       color: "#5C2D72", textColor: "#00AFAD", hubs: ["brand",     "team",       "story",     "values"    ] },
+  beginner: { label: "Just Starting Out",   color: "#00AFAD", textColor: "#fff", hubs: ["planning",   "debt",      "saving",    "tools"    ] },
+  debt:     { label: "I Have Debt",         color: "#008E8C", textColor: "#fff", hubs: ["debt",       "tools",     "planning",  "tax"      ] },
+  invest:   { label: "I Want to Invest",    color: "#5C9E9C", textColor: "#fff", hubs: ["saving",     "retirement","tax",       "tools"    ] },
+  retire:   { label: "Planning Retirement", color: "#7F4098", textColor: "#fff", hubs: ["retirement", "tax",       "saving",    "planning" ] },
+  business: { label: "I Run a Business",    color: "#5C2D72", textColor: "#fff", hubs: ["smallbiz",   "tax",       "insurance", "tools"    ] },
 };
 
 // ── MODE SELECTOR ─────────────────────────────────────────────────────────────
